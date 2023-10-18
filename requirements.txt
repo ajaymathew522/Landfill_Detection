@@ -1,0 +1,15 @@
+geopandas
+pystac_client
+planetary_computer
+rasterio
+numpy
+PIL
+requests
+io
+seaborn
+matplotlib.pyplot
+sklearn
+tensorflow
+flask
+json
+gunicorn
