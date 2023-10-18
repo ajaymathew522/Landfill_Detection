@@ -13,8 +13,8 @@ import rasterio
 from rasterio import windows
 from rasterio import features
 from rasterio import warp
-import base64
-
+from sklearn.metrics import precision_score, recall_score, roc_auc_score
+from io import BytesIO
 
 ALLOWED_EXTENSIONS = {'json','geojson'}
 
@@ -119,7 +119,8 @@ def predict():
     if file and allowed_file(file.filename):
         # Process the uploaded file without saving it
         file_contents = file.read()
-        gdf = gpd.read_file('data/test.geojson')
+        file_bytesio = BytesIO(file_contents)
+        gdf = gpd.read_file(file_bytesio)
         img_data =  [getimgdata(row['geometry'], time_of_interest) for _, row in gdf.iterrows()]
         resized_data = resize_images(img_data, target_size=(128, 128))
         images_test = [pair[0] for pair in resized_data]
@@ -128,10 +129,22 @@ def predict():
         predictions = loaded_model.predict(images_test)
         binary_predictions = (predictions > 0.5).astype(int)
         predictions_text = ["Landfill Presence Found" if i == 1 else "Landfill Presence Not Found" for i in binary_predictions]
+        cols = gdf.columns
 
-
-        results = [prediction for prediction in predictions_text]
-        return render_template("prediction.html", results=results)
+        if "label" in gdf.columns:
+            labels = gdf['label']
+            test_loss, test_accuracy = loaded_model.evaluate(images_test, labels)
+            print("Test Accuracy:", test_accuracy)
+            # Calculate precision and recall
+            precision = precision_score(labels, binary_predictions)
+            recall = recall_score(labels, binary_predictions)
+            # Calculate ROC-AUC score
+            roc_auc = roc_auc_score(labels, predictions)
+            results = [test_accuracy, precision, recall, roc_auc]
+            return render_template('testing.html', results=results)
+        else:
+            results = [prediction for prediction in predictions_text]
+            return render_template("prediction.html", results=results)
 
     else:
         flash('Invalid file extension')
