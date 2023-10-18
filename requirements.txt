@@ -3,7 +3,7 @@ pystac_client
 planetary_computer
 rasterio
 numpy
-PIL
+pillow
 requests
 io
 seaborn
