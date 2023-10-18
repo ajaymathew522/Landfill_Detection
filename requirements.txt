@@ -1,4 +1,5 @@
 geopandas
+pystac
 pystac-client
 planetary-computer
 rasterio
