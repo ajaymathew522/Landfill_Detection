@@ -26,9 +26,10 @@ jobs:
           git push --set-upstream origin ${{ github.ref }}
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
-          
+
       - name: Commit and Push Model
         run: |
-          git add CNN_model.keras
+          git add CNN_model.keras, metrics.txt, roc.png
           git commit -m "Add CNN_model.keras"
           git push
+      
