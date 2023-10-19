@@ -21,6 +21,7 @@ jobs:
           git config --global user.email "ajaymathew522@gmail.com"
           git config --global user.name "ajay"
           git remote set-url origin https://github.com/${{ github.repository }}.git
+          git pull
           git add CNN_model.keras, metrics.txt, roc.png
           git commit -m "Add CNN_model.keras"
           git push --set-upstream origin ${{ github.ref }}
