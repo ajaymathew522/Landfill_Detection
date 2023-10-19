@@ -1,6 +1,6 @@
+#Importing required libraries
 import json
 import tensorflow as tf
-
 from flask import Flask, flash, redirect,request,app,jsonify,url_for,render_template
 import numpy as np
 import pandas as pd
@@ -26,6 +26,15 @@ catalog = pystac_client.Client.open(
 time_of_interest = "2022-01-01/2022-12-30"
 
 def allowed_file(filename):
+    """
+    Function to check if file provided by user is of the permitted format
+
+    Args:
+        filename (string): The uploaded file's name
+
+    Returns:
+        Boolean value (True or False)
+    """
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
@@ -55,6 +64,16 @@ def resize_images(img_data, target_size=(128, 128)):
 # Function to pull satellite image data
 
 def getimgdata(area_of_interest, time_of_interest):
+    """
+    Download satellite images
+
+    Args:
+        area_of_interest: Polygon containing the coordinates of the image to be downloaded.
+        time_of_interest : A string containing the start and end date of the period when the satellite image database should be queried.
+
+    Returns:
+        ndarray:  A n-dimensional numpy array containing information about the three-channel rgb image
+    """
     search = catalog.search(
     collections=["sentinel-2-l2a"],
     intersects=area_of_interest,
@@ -80,8 +99,11 @@ def getimgdata(area_of_interest, time_of_interest):
 
 
 app=Flask(__name__)
-## Load the model
+
+# Load the model
 loaded_model = tf.keras.models.load_model('CNN_model.keras')
+
+
 @app.route('/')
 def home():
     return render_template('home.html')

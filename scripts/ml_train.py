@@ -1,3 +1,4 @@
+#Importing required libraries
 import geopandas as gpd
 from pystac.extensions.eo import EOExtension as eo
 import pystac_client
@@ -14,7 +15,6 @@ import tensorflow as tf
 from tensorflow.keras import layers, models
 
 # Read the GeoJSON training file
-
 gdf_train = gpd.read_file('data/train.geojson')
 gdf_test = gpd.read_file('data/test.geojson')
 # Display the first few rows of the GeoDataFrame
@@ -29,7 +29,6 @@ catalog = pystac_client.Client.open(
 
 
 # Function to pull satellite image data
-
 def getimgdata(area_of_interest, time_of_interest):
     search = catalog.search(
     collections=["sentinel-2-l2a"],
@@ -54,7 +53,6 @@ def getimgdata(area_of_interest, time_of_interest):
     return img_data.transpose(1, 2, 0) 
 
 # Function to get Indexes data
-
 def getIndexesdata(area_of_interest, time_of_interest):
     catalog = pystac_client.Client.open(
     "https://planetarycomputer.microsoft.com/api/stac/v1",
@@ -89,17 +87,16 @@ def getIndexesdata(area_of_interest, time_of_interest):
         savi = ((nir_data-red_data)/(nir_data + red_data + L))* (1+L)
         msavi = 2 * nir_data + 1 - np.sqrt((2 * nir_data + 1) ** 2 - 8 * (nir_data - red_data)) / 2
     return [ndvi[0], savi[0], msavi[0]]
+
 # Setting the time of interest
-
 time_of_interest = "2022-01-01/2022-12-30"
-# Gathering satellite images for training data
 
+# Gathering satellite images for training data
 img_data_train = [getimgdata(row['geometry'], time_of_interest) for _, row in gdf_train.iterrows()]
 img_data_test =  [getimgdata(row['geometry'], time_of_interest) for _, row in gdf_test.iterrows()]
 
 
 # Gathering NVDI, SAVI and MSAVI indexes for the images
-
 #index_data_train = [getIndexesdata(row['geometry'], time_of_interest)  for _, row in gdf_train.iterrows()]
 #index_data_test = [getIndexesdata(row['geometry'], time_of_interest) for _, row in gdf_test.iterrows()]
 
@@ -126,6 +123,7 @@ def resize_images(img_data, target_size=(128, 128)):
 
 resized_data_train = resize_images(img_data_train, target_size=(128, 128))
 resized_data_test = resize_images(img_data_test, target_size=(128, 128))
+
 # CNN model 
 model = models.Sequential([
     layers.Conv2D(32, (3, 3), activation='relu', input_shape=(128, 128, 3)),
@@ -152,11 +150,11 @@ images_train = [pair[0] for pair in resized_data_train]
 labels_train = [row['label'] for _, row in gdf_train.iterrows()]
 
 
-images_train = np.array(images_train)
+images_train = np.array(images_train)   #Converting to numpy array
 labels_train = np.array(labels_train)
 
 
-images_train = images_train / 255.0
+images_train = images_train / 255.0     #Normalising the data to fit between 0 and 1
 
 
 model.fit(images_train, labels_train, epochs=10, batch_size=32)
@@ -177,6 +175,7 @@ images_test = images_test / 255.0
 test_loss, test_accuracy = model.evaluate(images_test, labels_test)
 print("Test Accuracy:", test_accuracy)
 
+# Testing performance of model using test data
 predictions = model.predict(images_test)
 
 # Convert predictions to binary labels (0 or 1)
@@ -192,22 +191,9 @@ fpr, tpr, thresholds = roc_curve(labels_test, predictions)
 # Calculate ROC-AUC score
 roc_auc = roc_auc_score(labels_test, predictions)
 
-# Plot ROC curve
-#plt.figure(figsize=(8, 6))
-#plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (AUC = {roc_auc:.2f})')
-#plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-#plt.xlim([0.0, 1.0])
-#plt.ylim([0.0, 1.05])
-#plt.xlabel('False Positive Rate')
-#plt.ylabel('True Positive Rate')
-#plt.title('Receiver Operating Characteristic (ROC) Curve')
-#plt.legend(loc='lower right')
-#plt.savefig('roc.png')
 
 print("Precision:", precision)
 print("Recall:", recall)
 print("ROC-AUC:", roc_auc)
 
 model.save('CNN_model.keras')
-#with open('metrics.txt', 'w') as outfile:
-#    outfile.write(f'\nAccuracy = {test_accuracy}, Precision = {precision}, Recall = {recall}, ROC-AUC={roc_auc}.')
