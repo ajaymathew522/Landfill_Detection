@@ -1,17 +1,24 @@
-name: deploy_to_railway
+name: Install Railway CLI and Deploy
 
 on:
   workflow_run:
-    workflows: ["cgg-model-training"] # Ensure this workflow runs only after the training workflow is completed.
+    workflows: ["cgg-model-training"]
     types:
       - completed
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Install Railway CLI
+        run: |
+          # Install Railway CLI using npm
+          npm install -g @railway/cli
+
       - name: Deploy to Railway
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
@@ -22,4 +29,3 @@ jobs:
           
           # Deploy to Railway
           railway up
-
