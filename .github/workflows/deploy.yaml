@@ -1,26 +1,26 @@
 # deploy.yaml
 
-#name: deploy_to_heroku
+name: deploy_to_heroku
 
-#on:
-#  workflow_run:
-#    workflows: ["cgg-model-training"] # Ensuring this workflow runs only after the training workflow is completed.
-#    types:
-#      - completed
+on:
+  workflow_run:
+    workflows: ["cgg-model-training"] # Ensuring this workflow runs only after the training workflow is completed.
+    types:
+      - completed
 
-#jobs:
-#  build:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v2
-#      - name: Build, Push and Release a Docker container to Heroku
-#        uses: gonuit/heroku-docker-deploy@v1.3.3
-#        with:
-#          email: ${{ secrets.HEROKU_EMAIL }}
-#          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-#          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
-#          dockerfile_directory: ./
-#          dockerfile_name: Dockerfile
-#          docker_options: "--no-cache"
-#          process_type: web
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build, Push and Release a Docker container to Heroku
+        uses: gonuit/heroku-docker-deploy@v1.3.3
+        with:
+          email: ${{ secrets.HEROKU_EMAIL }}
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+          dockerfile_directory: ./
+          dockerfile_name: Dockerfile
+          docker_options: "--no-cache"
+          process_type: web
